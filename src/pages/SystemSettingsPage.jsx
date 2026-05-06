@@ -7,7 +7,7 @@ export default function SystemSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [downloading, setDownloading] = useState(false)
-  
+
   const [form, setForm] = useState({
     university_name: '',
     description: '',
@@ -213,16 +213,16 @@ export default function SystemSettingsPage() {
             <p className="text-sm text-gray-600 mb-6 leading-relaxed">
               Unduh salinan penuh database SQLite saat ini (termasuk user, paper, review). Sangat disarankan untuk membackup secara rutin.
             </p>
-            <button 
-              type="button" 
-              onClick={handleBackup} 
+            <button
+              type="button"
+              onClick={handleBackup}
               disabled={downloading}
               className="w-full btn-outline border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
             >
               {downloading ? <><Spinner size="sm" color="text-blue-600" /> Mengunduh Backup...</> : '📥 Unduh Database SQLite'}
             </button>
           </div>
-          
+
           <div className="card card-body bg-orange-50 border-orange-100">
             <h2 className="font-semibold text-orange-800 mb-2 flex items-center gap-2">
               <span className="text-xl">⚠️</span>
