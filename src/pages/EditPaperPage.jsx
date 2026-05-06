@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { paperService } from '../services/paperService'
+import { systemService } from '../services/systemService'
 import { Spinner, PageLoader } from '../components/Loader'
 import toast from 'react-hot-toast'
 
@@ -23,25 +24,52 @@ export default function EditPaperPage() {
   const [dragOver, setDragOver] = useState(false)
   const [wordDragOver, setWordDragOver] = useState(false)
 
+  const [categories, setCategories] = useState([])
+  const [customCategory, setCustomCategory] = useState('')
+  const [isCustomCategory, setIsCustomCategory] = useState(false)
+
   useEffect(() => {
-    paperService.get(id).then(res => {
+    setFetching(true)
+    Promise.all([
+      systemService.getSettings(),
+      paperService.get(id)
+    ]).then(([settings, res]) => {
+      const cats = settings.categories || []
+      setCategories(cats)
+
       if (!['pending', 'revision'].includes(res.status)) {
         toast.error('Paper ini tidak dapat diedit saat ini.')
         navigate('/my-papers')
         return
       }
+
       setPaper(res)
+      const isCustom = res.category && !cats.includes(res.category)
       setForm({
         title: res.title,
         abstract: res.abstract,
-        category: res.category || '',
+        category: isCustom ? 'Others' : (res.category || ''),
         keywords: res.keywords || '',
       })
+      if (isCustom) {
+        setIsCustomCategory(true)
+        setCustomCategory(res.category)
+      }
     }).catch(() => {
-      toast.error('Gagal memuat paper')
+      toast.error('Gagal memuat data paper')
       navigate('/my-papers')
     }).finally(() => setFetching(false))
   }, [id, navigate])
+
+  const handleCategoryChange = (e) => {
+    const value = e.target.value
+    setForm({ ...form, category: value })
+    if (value.toLowerCase() === 'others' || value.toLowerCase() === 'lainnya') {
+      setIsCustomCategory(true)
+    } else {
+      setIsCustomCategory(false)
+    }
+  }
 
   const handleFileDrop = (e) => {
     e.preventDefault()
@@ -79,7 +107,8 @@ export default function EditPaperPage() {
       // Wait, we defined Route::post('/papers/{paper}', [PaperController::class, 'update'])!
       formData.append('title', form.title)
       formData.append('abstract', form.abstract)
-      if (form.category) formData.append('category', form.category)
+      const finalCategory = isCustomCategory ? customCategory : form.category
+      if (finalCategory) formData.append('category', finalCategory)
       formData.append('keywords', form.keywords)
       if (file) formData.append('file', file)
       if (wordFile) formData.append('word_file', wordFile)
@@ -150,16 +179,34 @@ export default function EditPaperPage() {
             <select
               id="paper-category"
               value={form.category}
-              onChange={e => setForm({ ...form, category: e.target.value })}
+              onChange={handleCategoryChange}
               className="form-input"
               required
             >
               <option value="">-- Pilih Kategori --</option>
-              {['Computer Science', 'Information Systems', 'Software Engineering', 'Artificial Intelligence', 'Networking', 'Others'].map(c => (
+              {categories.map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}
+              {!categories.some(c => c.toLowerCase() === 'others' || c.toLowerCase() === 'lainnya') && (
+                <option value="Others">Others / Lainnya</option>
+              )}
             </select>
           </div>
+
+          {isCustomCategory && (
+            <div className="form-group mt-3 animate-fade-in">
+              <label className="form-label" htmlFor="paper-custom-category">Masukkan Kategori Kustom *</label>
+              <input
+                id="paper-custom-category"
+                type="text"
+                value={customCategory}
+                onChange={e => setCustomCategory(e.target.value)}
+                className="form-input"
+                placeholder="Masukkan bidang ilmu Anda sendiri..."
+                required
+              />
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="paper-keywords">Keywords</label>

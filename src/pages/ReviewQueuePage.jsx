@@ -59,7 +59,7 @@ export default function ReviewQueuePage() {
     accept: { label: '✅ Diterima', class: 'border-green-300 bg-green-50 text-green-800' },
     minor_revision: { label: '✏️ Revisi Minor', class: 'border-orange-300 bg-orange-50 text-orange-800' },
     major_revision: { label: '⚠️ Revisi Mayor', class: 'border-red-300 bg-red-50 text-red-800' },
-    reject: { label: '❌ Ditolak', class: 'border-gray-300 bg-gray-50 text-gray-700' },
+    reject: { label: '❌ Ditolak', class: 'border-red-400 bg-red-50 text-red-700' },
   }
 
   return (
@@ -223,8 +223,9 @@ export default function ReviewQueuePage() {
                   <label
                     key={d}
                     htmlFor={`decision-${d}`}
-                    className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all
-                      ${form.decision === d ? decisionConfig[d].class + ' border-opacity-100' : 'border-gray-200 hover:border-gray-300'}`}
+                    onClick={() => setForm({ ...form, decision: d })}
+                    className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all relative
+                      ${form.decision === d ? decisionConfig[d].class + ' border-opacity-100 ring-2 ring-offset-1 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                   >
                     <input
                       id={`decision-${d}`}
@@ -233,7 +234,7 @@ export default function ReviewQueuePage() {
                       value={d}
                       checked={form.decision === d}
                       onChange={e => setForm({ ...form, decision: e.target.value })}
-                      className="hidden"
+                      className="absolute opacity-0 pointer-events-none"
                     />
                     <span className="text-sm font-medium">{decisionConfig[d].label}</span>
                   </label>

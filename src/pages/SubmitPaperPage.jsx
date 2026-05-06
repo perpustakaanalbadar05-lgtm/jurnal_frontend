@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { paperService } from '../services/paperService'
+import { systemService } from '../services/systemService'
 import { Spinner } from '../components/Loader'
 import toast from 'react-hot-toast'
 
@@ -19,6 +20,30 @@ export default function SubmitPaperPage() {
   const [coAuthors, setCoAuthors] = useState([])
   const [dragOver, setDragOver] = useState(false)
   const [wordDragOver, setWordDragOver] = useState(false)
+
+  const [categories, setCategories] = useState([])
+  const [customCategory, setCustomCategory] = useState('')
+  const [isCustomCategory, setIsCustomCategory] = useState(false)
+
+  useEffect(() => {
+    systemService.getSettings()
+      .then(res => {
+        setCategories(res.categories || [])
+      })
+      .catch(() => {
+        toast.error('Gagal memuat kategori dari sistem')
+      })
+  }, [])
+
+  const handleCategoryChange = (e) => {
+    const value = e.target.value
+    setForm({ ...form, category: value })
+    if (value.toLowerCase() === 'others' || value.toLowerCase() === 'lainnya') {
+      setIsCustomCategory(true)
+    } else {
+      setIsCustomCategory(false)
+    }
+  }
 
   const addCoAuthor = () => setCoAuthors([...coAuthors, { name: '', email: '', institution: '' }])
   const removeCoAuthor = (i) => setCoAuthors(coAuthors.filter((_, idx) => idx !== i))
@@ -62,7 +87,8 @@ export default function SubmitPaperPage() {
       const formData = new FormData()
       formData.append('title', form.title)
       formData.append('abstract', form.abstract)
-      if (form.category) formData.append('category', form.category)
+      const finalCategory = isCustomCategory ? customCategory : form.category
+      if (finalCategory) formData.append('category', finalCategory)
       formData.append('keywords', form.keywords)
       if (file) formData.append('file', file)
       if (wordFile) formData.append('word_file', wordFile)
@@ -140,16 +166,34 @@ export default function SubmitPaperPage() {
             <select
               id="paper-category"
               value={form.category}
-              onChange={e => setForm({ ...form, category: e.target.value })}
+              onChange={handleCategoryChange}
               className="form-input"
               required
             >
               <option value="">-- Pilih Kategori --</option>
-              {['Computer Science', 'Information Systems', 'Software Engineering', 'Artificial Intelligence', 'Networking', 'Others'].map(c => (
+              {categories.map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}
+              {!categories.some(c => c.toLowerCase() === 'others' || c.toLowerCase() === 'lainnya') && (
+                <option value="Others">Others / Lainnya</option>
+              )}
             </select>
           </div>
+
+          {isCustomCategory && (
+            <div className="form-group mt-3 animate-fade-in">
+              <label className="form-label" htmlFor="paper-custom-category">Masukkan Kategori Kustom *</label>
+              <input
+                id="paper-custom-category"
+                type="text"
+                value={customCategory}
+                onChange={e => setCustomCategory(e.target.value)}
+                className="form-input"
+                placeholder="Masukkan bidang ilmu Anda sendiri..."
+                required
+              />
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="paper-keywords">Keywords</label>
