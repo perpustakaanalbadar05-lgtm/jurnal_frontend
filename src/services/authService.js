@@ -3,15 +3,15 @@ import api from './api'
 export const authService = {
   async login(email, password) {
     const { data } = await api.post('/login', { email, password })
-    localStorage.setItem('apms_token', data.token)
-    localStorage.setItem('apms_user', JSON.stringify(data.user))
+    sessionStorage.setItem('apms_token', data.token)
+    sessionStorage.setItem('apms_user', JSON.stringify(data.user))
     return data
   },
 
   async logout() {
     await api.post('/logout')
-    localStorage.removeItem('apms_token')
-    localStorage.removeItem('apms_user')
+    sessionStorage.removeItem('apms_token')
+    sessionStorage.removeItem('apms_user')
   },
 
   async getUser() {
@@ -20,11 +20,11 @@ export const authService = {
   },
 
   getCurrentUser() {
-    const user = localStorage.getItem('apms_user')
+    const user = sessionStorage.getItem('apms_user')
     return user ? JSON.parse(user) : null
   },
 
   isAuthenticated() {
-    return !!localStorage.getItem('apms_token')
+    return !!sessionStorage.getItem('apms_token')
   },
 }

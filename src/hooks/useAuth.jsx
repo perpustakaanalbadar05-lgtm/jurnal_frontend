@@ -15,11 +15,11 @@ export function AuthProvider({ children }) {
       authService.getUser()
         .then(freshUser => {
           setUser(freshUser)
-          localStorage.setItem('apms_user', JSON.stringify(freshUser))
+          sessionStorage.setItem('apms_user', JSON.stringify(freshUser))
         })
         .catch(() => {
-          localStorage.removeItem('apms_token')
-          localStorage.removeItem('apms_user')
+          sessionStorage.removeItem('apms_token')
+          sessionStorage.removeItem('apms_user')
           setUser(null)
         })
         .finally(() => setLoading(false))
@@ -27,6 +27,32 @@ export function AuthProvider({ children }) {
       setLoading(false)
     }
   }, [])
+
+  // Idle timeout (Auto logout after 15 minutes of inactivity)
+  useEffect(() => {
+    if (!user) return
+
+    let timeoutId
+    const INACTIVITY_LIMIT = 15 * 60 * 1000 // 15 menit
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => {
+        logout()
+        alert('Sesi Anda telah berakhir karena tidak ada aktivitas selama 15 menit.')
+      }, INACTIVITY_LIMIT)
+    }
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart']
+    events.forEach(event => window.addEventListener(event, resetTimer))
+    
+    resetTimer()
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+      events.forEach(event => window.removeEventListener(event, resetTimer))
+    }
+  }, [user])
 
   const login = async (email, password) => {
     const data = await authService.login(email, password)
