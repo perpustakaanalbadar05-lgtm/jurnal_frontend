@@ -6,8 +6,10 @@ export const reviewService = {
     return data
   },
 
-  async submit(reviewData) {
-    const { data } = await api.post('/reviews', reviewData)
+  async submit(formData) {
+    const { data } = await api.post('/reviews', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return data
   },
 
@@ -19,5 +21,20 @@ export const reviewService = {
   async getMyQueue() {
     const { data } = await api.get('/my-review-queue')
     return data
+  },
+
+  async download(reviewId, fileName = 'revised_document.docx') {
+    const response = await api.get(`/reviews/${reviewId}/download`, {
+      responseType: 'blob',
+    })
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
   },
 }

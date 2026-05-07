@@ -300,6 +300,17 @@ export default function MyPapersPage() {
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                   <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Komentar Reviewer:</p>
                   <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{rev.comment}</p>
+                  {rev.file_path && (
+                    <div className="mt-3 pt-3 border-t border-gray-200/60 flex justify-end">
+                      <button
+                        onClick={() => reviewService.download(rev.id, rev.file_name)}
+                        className="btn btn-xs btn-primary gap-1.5 shadow-sm"
+                        title="Download File Revisi dari Reviewer"
+                      >
+                        📥 Download File Revisi ({rev.file_name?.endsWith('.pdf') ? 'PDF' : 'Word'})
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

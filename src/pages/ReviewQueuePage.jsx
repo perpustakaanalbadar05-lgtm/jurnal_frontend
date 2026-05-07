@@ -14,7 +14,7 @@ export default function ReviewQueuePage() {
   const [loading, setLoading] = useState(true)
   const [reviewModal, setReviewModal] = useState(null)
   const [detailModal, setDetailModal] = useState(null)
-  const [form, setForm] = useState({ comment: '', private_comment: '', decision: 'accept' })
+  const [form, setForm] = useState({ comment: '', private_comment: '', decision: 'accept', file: null })
   const [submitting, setSubmitting] = useState(false)
 
   const fetchQueue = () => {
@@ -28,7 +28,7 @@ export default function ReviewQueuePage() {
 
   const openReviewModal = (paper) => {
     setReviewModal(paper)
-    setForm({ comment: '', private_comment: '', decision: 'accept' })
+    setForm({ comment: '', private_comment: '', decision: 'accept', file: null })
   }
 
   const handleSubmitReview = async (e) => {
@@ -39,12 +39,16 @@ export default function ReviewQueuePage() {
     }
     setSubmitting(true)
     try {
-      await reviewService.submit({
-        paper_id: reviewModal.id,
-        comment: form.comment,
-        private_comment: form.private_comment,
-        decision: form.decision,
-      })
+      const formData = new FormData()
+      formData.append('paper_id', reviewModal.id)
+      formData.append('comment', form.comment)
+      formData.append('private_comment', form.private_comment || '')
+      formData.append('decision', form.decision)
+      if (form.file) {
+        formData.append('file', form.file)
+      }
+
+      await reviewService.submit(formData)
       toast.success('Review berhasil disubmit! 🎉')
       setReviewModal(null)
       fetchQueue()
@@ -267,6 +271,19 @@ export default function ReviewQueuePage() {
                 rows={3}
                 placeholder="Catatan tambahan untuk admin (tidak terlihat oleh author)..."
               />
+            </div>
+
+            {/* File Upload */}
+            <div className="form-group">
+              <label className="form-label" htmlFor="review-file">Upload File Revisi (PDF / Word) - <span className="text-gray-400 font-normal">Opsional</span></label>
+              <input
+                id="review-file"
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={e => setForm({ ...form, file: e.target.files[0] })}
+                className="form-input block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all border border-gray-200 rounded-xl"
+              />
+              <p className="text-xs text-gray-400 mt-1">Menerima format .pdf, .doc, atau .docx (Max: 20MB)</p>
             </div>
 
             <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 sm:justify-end pt-2 border-t border-gray-100">

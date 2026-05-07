@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { paperService } from '../services/paperService'
+import { reviewService } from '../services/reviewService'
 import { userService } from '../services/userService'
 import { StatusBadge } from '../components/Badge'
 import { TableSkeleton } from '../components/Loader'
@@ -481,6 +482,39 @@ export default function PaperManagementPage() {
                 </button>
               )}
             </div>
+
+            {detailModal.reviews && detailModal.reviews.length > 0 && (
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <p className="text-xs font-semibold text-gray-400 uppercase mb-3">Daftar Review & Catatan</p>
+                <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
+                  {detailModal.reviews.map((rev) => (
+                    <div key={rev.id} className="p-3 bg-gray-50 border border-gray-100 rounded-xl text-xs space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-gray-700">{rev.reviewer?.name || 'Reviewer'}</span>
+                        <span className="text-gray-400">{formatDate(rev.created_at)}</span>
+                      </div>
+                      <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{rev.comment}</p>
+                      {rev.private_comment && (
+                        <div className="bg-red-50/50 p-2 rounded-lg border border-red-100 text-[11px] text-red-800">
+                          <span className="font-semibold uppercase text-[9px] tracking-wide block mb-0.5">🔐 Catatan Privat (Admin Only):</span>
+                          {rev.private_comment}
+                        </div>
+                      )}
+                      {rev.file_path && (
+                        <div className="pt-2 border-t border-gray-200/50 flex justify-end">
+                          <button
+                            onClick={() => reviewService.download(rev.id, rev.file_name)}
+                            className="btn btn-xs btn-primary gap-1 shadow-sm"
+                          >
+                            📥 Download File Revisi ({rev.file_name?.endsWith('.pdf') ? 'PDF' : 'Word'})
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </Modal>
