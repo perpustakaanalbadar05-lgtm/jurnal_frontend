@@ -11,6 +11,8 @@ const DECISIONS = ['accept', 'minor_revision', 'major_revision', 'reject']
 
 export default function ReviewQueuePage() {
   const [queue, setQueue] = useState([])
+  const [history, setHistory] = useState([])
+  const [activeTab, setActiveTab] = useState('queue') // 'queue' or 'history'
   const [loading, setLoading] = useState(true)
   const [reviewModal, setReviewModal] = useState(null)
   const [detailModal, setDetailModal] = useState(null)
@@ -24,7 +26,20 @@ export default function ReviewQueuePage() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchQueue() }, [])
+  const fetchHistory = () => {
+    setLoading(true)
+    reviewService.getMyHistory()
+      .then(setHistory)
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    if (activeTab === 'queue') {
+      fetchQueue()
+    } else {
+      fetchHistory()
+    }
+  }, [activeTab])
 
   const openReviewModal = (paper) => {
     setReviewModal(paper)
@@ -72,83 +87,203 @@ export default function ReviewQueuePage() {
   return (
     <div className="animate-fade-in">
       <div className="page-header">
-        <h1 className="page-title">Antrian Review 🔍</h1>
-        <p className="page-subtitle">Paper yang ditugaskan kepada Anda untuk direview</p>
+        <h1 className="page-title">Penugasan Review 🔍</h1>
+        <p className="page-subtitle">Kelola penugasan aktif dan lihat riwayat review Anda</p>
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-1.5 mb-6 flex gap-1 max-w-md">
+        <button
+          onClick={() => setActiveTab('queue')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200
+            ${activeTab === 'queue'
+              ? 'bg-primary text-white shadow-md shadow-primary/20'
+              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+            }`}
+        >
+          📥 Antrian Aktif ({queue.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200
+            ${activeTab === 'history'
+              ? 'bg-primary text-white shadow-md shadow-primary/20'
+              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+            }`}
+        >
+          📜 Riwayat Review ({history.length})
+        </button>
       </div>
 
       {loading ? (
         <TableSkeleton rows={4} cols={4} />
-      ) : queue.length === 0 ? (
-        <div className="card card-body text-center py-16">
-          <div className="text-5xl mb-4">✅</div>
-          <h3 className="font-semibold text-gray-700 mb-2">Tidak ada paper untuk direview</h3>
-          <p className="text-gray-400 text-sm">Semua paper sudah direview atau belum ada penugasan baru</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {queue.map((paper) => (
-            <div key={paper.id} className="card card-body">
-              <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-2xl flex-shrink-0">
-                  🔍
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-start gap-2 mb-2">
-                    <h3 className="font-semibold text-gray-900 flex-1">
-                      <button 
-                        onClick={() => setDetailModal(paper)} 
-                        className="text-left hover:text-primary transition-colors focus:outline-none focus:underline"
-                      >
-                        {paper.title}
-                      </button>
-                    </h3>
-                    <StatusBadge status={paper.status} />
+      ) : activeTab === 'queue' ? (
+        queue.length === 0 ? (
+          <div className="card card-body text-center py-16">
+            <div className="text-5xl mb-4">✅</div>
+            <h3 className="font-semibold text-gray-700 mb-2">Tidak ada paper untuk direview</h3>
+            <p className="text-gray-400 text-sm">Semua paper sudah direview atau belum ada penugasan baru</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {queue.map((paper) => (
+              <div key={paper.id} className="card card-body">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-2xl flex-shrink-0">
+                    🔍
                   </div>
-                  <p className="text-sm text-gray-500 line-clamp-3 mb-3">{paper.abstract}</p>
-                  <div className="flex flex-wrap gap-3 text-xs text-gray-400">
-                    <span>👤 {paper.author?.name}</span>
-                    <span>🏛️ {paper.author?.institution || '-'}</span>
-                    <span>📅 {formatDate(paper.created_at)}</span>
-                    {paper.keywords && <span>🏷️ {paper.keywords}</span>}
-                  </div>
-
-                  {/* Co-authors */}
-                  {paper.co_authors?.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {paper.co_authors.map((ca, i) => (
-                        <span key={i} className="badge bg-gray-100 text-gray-600">👤 {ca.name}</span>
-                      ))}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-start gap-2 mb-2">
+                      <h3 className="font-semibold text-gray-900 flex-1">
+                        <button 
+                          onClick={() => setDetailModal(paper)} 
+                          className="text-left hover:text-primary transition-colors focus:outline-none focus:underline"
+                        >
+                          {paper.title}
+                        </button>
+                      </h3>
+                      <StatusBadge status={paper.status} />
                     </div>
-                  )}
-                </div>
+                    <p className="text-sm text-gray-500 line-clamp-3 mb-3">{paper.abstract}</p>
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-400">
+                      <span>👤 {paper.author?.name}</span>
+                      <span>🏛️ {paper.author?.institution || '-'}</span>
+                      <span>📅 {formatDate(paper.created_at)}</span>
+                      {paper.keywords && <span>🏷️ {paper.keywords}</span>}
+                    </div>
 
-                <div className="flex flex-wrap gap-2 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-                  {paper.file_path && (
+                    {/* Co-authors */}
+                    {paper.co_authors?.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {paper.co_authors.map((ca, i) => (
+                          <span key={i} className="badge bg-gray-100 text-gray-600">👤 {ca.name}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                    {paper.file_path && (
+                      <button
+                        onClick={() => paperService.download(paper.id, paper.file_name)}
+                        className="btn btn-sm btn-ghost flex-1 sm:flex-none justify-center"
+                        title="Download PDF"
+                      >📥 PDF</button>
+                    )}
+                    {paper.word_file_path && (
+                      <button
+                        onClick={() => paperService.downloadWord(paper.id, paper.word_file_name)}
+                        className="btn btn-sm btn-ghost text-primary flex-1 sm:flex-none justify-center"
+                        title="Download Word"
+                      >📝 Word</button>
+                    )}
                     <button
-                      onClick={() => paperService.download(paper.id, paper.file_name)}
-                      className="btn btn-sm btn-ghost flex-1 sm:flex-none justify-center"
-                      title="Download PDF"
-                    >📥 PDF</button>
-                  )}
-                  {paper.word_file_path && (
-                    <button
-                      onClick={() => paperService.downloadWord(paper.id, paper.word_file_name)}
-                      className="btn btn-sm btn-ghost text-primary flex-1 sm:flex-none justify-center"
-                      title="Download Word"
-                    >📝 Word</button>
-                  )}
-                  <button
-                    onClick={() => openReviewModal(paper)}
-                    className="btn btn-sm btn-primary flex-1 sm:flex-none justify-center"
-                    id={`btn-review-${paper.id}`}
-                  >
-                    ✍️ Review
-                  </button>
+                      onClick={() => openReviewModal(paper)}
+                      className="btn btn-sm btn-primary flex-1 sm:flex-none justify-center"
+                      id={`btn-review-${paper.id}`}
+                    >
+                      ✍️ Review
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )
+      ) : (
+        history.length === 0 ? (
+          <div className="card card-body text-center py-16">
+            <div className="text-5xl mb-4">📜</div>
+            <h3 className="font-semibold text-gray-700 mb-2">Belum ada riwayat review</h3>
+            <p className="text-gray-400 text-sm">Anda belum menyelesaikan review untuk paper apapun</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {history.map((paper) => (
+              <div key={paper.id} className="card card-body">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-green-50 text-green-600 border border-green-200 flex items-center justify-center text-2xl flex-shrink-0">
+                    ✅
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-start gap-2 mb-2">
+                      <h3 className="font-semibold text-gray-900 flex-1">
+                        <button 
+                          onClick={() => setDetailModal(paper)} 
+                          className="text-left hover:text-primary transition-colors focus:outline-none focus:underline"
+                        >
+                          {paper.title}
+                        </button>
+                      </h3>
+                      <StatusBadge status={paper.status} />
+                    </div>
+                    <p className="text-sm text-gray-500 line-clamp-3 mb-3">{paper.abstract}</p>
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-4">
+                      <span>👤 Author: {paper.author?.name}</span>
+                      <span>🏛️ {paper.author?.institution || '-'}</span>
+                      <span>📅 {formatDate(paper.created_at)}</span>
+                      {paper.keywords && <span>🏷️ {paper.keywords}</span>}
+                    </div>
+
+                    {/* Review comments */}
+                    {paper.reviews && paper.reviews.map((rev) => (
+                      <div key={rev.id} className="p-4 rounded-xl border border-gray-100 bg-gray-50/50 space-y-2 text-xs sm:text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-gray-700 uppercase text-[10px] tracking-wide">💬 Ulasan Anda</span>
+                          <DecisionBadge decision={rev.decision} />
+                        </div>
+                        <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{rev.comment}</p>
+                        {rev.private_comment && (
+                          <div className="p-2.5 bg-red-50/50 rounded-lg border border-red-100 text-[11px] text-red-800">
+                            <span className="font-semibold uppercase text-[9px] tracking-wide block mb-0.5">🔐 Catatan Privat (Admin Only):</span>
+                            {rev.private_comment}
+                          </div>
+                        )}
+                        {(rev.file_path || rev.word_file_path) && (
+                          <div className="pt-2 border-t border-gray-200/50 flex flex-wrap gap-2 justify-end">
+                            {rev.file_path && (
+                              <button
+                                onClick={() => reviewService.download(rev.id, rev.file_name)}
+                                className="btn btn-xs btn-primary gap-1 shadow-sm"
+                              >
+                                📥 Download PDF ({rev.file_name})
+                              </button>
+                            )}
+                            {rev.word_file_path && (
+                              <button
+                                onClick={() => reviewService.downloadWord(rev.id, rev.word_file_name)}
+                                className="btn btn-xs btn-outline border-primary text-primary hover:bg-primary hover:text-white gap-1 shadow-sm"
+                              >
+                                📝 Download Word ({rev.word_file_name})
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                    {paper.file_path && (
+                      <button
+                        onClick={() => paperService.download(paper.id, paper.file_name)}
+                        className="btn btn-sm btn-ghost flex-1 sm:flex-none justify-center"
+                        title="Download PDF"
+                      >📥 PDF Asli</button>
+                    )}
+                    {paper.word_file_path && (
+                      <button
+                        onClick={() => paperService.downloadWord(paper.id, paper.word_file_name)}
+                        className="btn btn-sm btn-ghost text-primary flex-1 sm:flex-none justify-center"
+                        title="Download Word"
+                      >📝 Word Asli</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {/* Detail Modal */}

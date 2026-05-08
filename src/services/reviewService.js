@@ -23,6 +23,11 @@ export const reviewService = {
     return data
   },
 
+  async getMyHistory() {
+    const { data } = await api.get('/my-review-history')
+    return data
+  },
+
   async download(reviewId, fileName = 'revised_document.docx') {
     const response = await api.get(`/reviews/${reviewId}/download`, {
       responseType: 'blob',
