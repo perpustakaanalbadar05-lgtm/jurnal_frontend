@@ -5,8 +5,6 @@ import { systemService } from '../services/systemService'
 import { formatDate } from '../utils/helpers'
 import { useDebounce } from '../hooks/useDebounce'
 
-const CATEGORIES = ['', 'Computer Science', 'Information Systems', 'Software Engineering', 'Artificial Intelligence', 'Networking', 'Others']
-
 export default function PublicationsPage() {
   const [papers, setPapers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -15,6 +13,8 @@ export default function PublicationsPage() {
   const [page, setPage] = useState(1)
   const [meta, setMeta] = useState(null)
   const [settings, setSettings] = useState(null)
+
+  const categories = settings?.categories ? ['', ...settings.categories] : ['', 'Computer Science', 'Information Systems', 'Software Engineering', 'Artificial Intelligence', 'Networking', 'Others']
 
   const debouncedSearch = useDebounce(search, 500)
 
@@ -83,7 +83,7 @@ export default function PublicationsPage() {
         {/* Filters + stats bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map(cat => (
+            {categories.map(cat => (
               <button
                 key={cat}
                 onClick={() => { setCategory(cat); setPage(1) }}

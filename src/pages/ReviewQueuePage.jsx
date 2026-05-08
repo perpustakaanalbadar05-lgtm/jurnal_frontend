@@ -6,6 +6,7 @@ import { TableSkeleton } from '../components/Loader'
 import { Modal } from '../components/Modal'
 import { formatDate, DECISION_LABELS } from '../utils/helpers'
 import toast from 'react-hot-toast'
+import DiscussionPanel from '../components/DiscussionPanel'
 
 const DECISIONS = ['accept', 'minor_revision', 'major_revision', 'reject']
 
@@ -344,6 +345,8 @@ export default function ReviewQueuePage() {
                 </button>
               )}
             </div>
+
+            <DiscussionPanel paperId={detailModal.id} />
           </div>
         )}
       </Modal>

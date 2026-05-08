@@ -6,6 +6,8 @@ import { Modal } from '../components/Modal'
 import { formatDate, STATUS_LABELS, STATUS_ICONS } from '../utils/helpers'
 import { reviewService } from '../services/reviewService'
 import { useDebounce } from '../hooks/useDebounce'
+import { systemService } from '../services/systemService'
+import DiscussionPanel from '../components/DiscussionPanel'
 
 const STATUS_COLORS = {
   pending:      { bg: 'bg-amber-50', border: 'border-amber-200', accent: 'bg-amber-400', icon: 'bg-amber-100 text-amber-600' },
@@ -17,7 +19,6 @@ const STATUS_COLORS = {
 }
 
 const STATUSES = ['', 'pending', 'under_review', 'accepted', 'revision', 'rejected', 'published']
-const CATEGORIES = ['', 'Computer Science', 'Information Systems', 'Software Engineering', 'Artificial Intelligence', 'Networking', 'Others']
 
 const STATUS_COUNTS_LABELS = {
   '': 'Semua', pending: 'Menunggu', under_review: 'Direview',
@@ -26,6 +27,7 @@ const STATUS_COUNTS_LABELS = {
 
 export default function MyPapersPage() {
   const [papers, setPapers] = useState([])
+  const [settings, setSettings] = useState(null)
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
@@ -36,6 +38,8 @@ export default function MyPapersPage() {
   const [historyModal, setHistoryModal] = useState(null)
   const [historyLoading, setHistoryLoading] = useState(false)
   const [reviews, setReviews] = useState([])
+
+  const categories = settings?.categories ? ['', ...settings.categories] : ['', 'Computer Science', 'Information Systems', 'Software Engineering', 'Artificial Intelligence', 'Networking', 'Others']
 
   const fetchHistory = async (paperId) => {
     setHistoryLoading(true)
@@ -67,7 +71,10 @@ export default function MyPapersPage() {
       .finally(() => setLoading(false))
   }, [page, statusFilter, categoryFilter, debouncedSearch])
 
-  useEffect(() => { fetchPapers() }, [fetchPapers])
+  useEffect(() => {
+    fetchPapers()
+    systemService.getSettings().then(setSettings).catch(() => {})
+  }, [fetchPapers])
 
   return (
     <div className="animate-fade-in max-w-5xl mx-auto">
@@ -121,7 +128,7 @@ export default function MyPapersPage() {
 
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {CATEGORIES.map(cat => (
+        {categories.map(cat => (
           <button
             key={cat}
             onClick={() => { setCategoryFilter(cat); setPage(1) }}
@@ -280,52 +287,58 @@ export default function MyPapersPage() {
             <div className="animate-spin text-3xl mb-3">⏳</div>
             <p className="text-gray-400">Memuat riwayat...</p>
           </div>
-        ) : reviews.length === 0 ? (
-          <div className="py-20 text-center">
-            <div className="text-4xl mb-3">📭</div>
-            <p className="text-gray-400">Belum ada riwayat review untuk paper ini.</p>
-          </div>
         ) : (
-          <div className="space-y-6">
-            {reviews.map((rev, idx) => (
-              <div key={rev.id} className="relative pl-6 border-l-2 border-gray-100">
-                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-2 border-primary" />
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-gray-900">Review #{reviews.length - idx}</span>
-                    <DecisionBadge decision={rev.decision} />
-                  </div>
-                  <span className="text-xs text-gray-400">{formatDate(rev.created_at)}</span>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                  <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Komentar Reviewer:</p>
-                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{rev.comment}</p>
-                  {(rev.file_path || rev.word_file_path) && (
-                    <div className="mt-3 pt-3 border-t border-gray-200/60 flex flex-wrap gap-2 justify-end">
-                      {rev.file_path && (
-                        <button
-                          onClick={() => reviewService.download(rev.id, rev.file_name)}
-                          className="btn btn-xs btn-primary gap-1.5 shadow-sm"
-                          title="Download File PDF dari Reviewer"
-                        >
-                          📥 Download PDF ({rev.file_name})
-                        </button>
-                      )}
-                      {rev.word_file_path && (
-                        <button
-                          onClick={() => reviewService.downloadWord(rev.id, rev.word_file_name)}
-                          className="btn btn-xs btn-outline border-primary text-primary hover:bg-primary hover:text-white gap-1.5 shadow-sm"
-                          title="Download File Word dari Reviewer"
-                        >
-                          📝 Download Word ({rev.word_file_name})
-                        </button>
+          <>
+            {reviews.length === 0 ? (
+              <div className="py-8 text-center bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                <div className="text-4xl mb-2">📭</div>
+                <p className="text-gray-400 text-sm">Belum ada riwayat review untuk paper ini.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {reviews.map((rev, idx) => (
+                  <div key={rev.id} className="relative pl-6 border-l-2 border-gray-100">
+                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-2 border-primary" />
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-gray-900">Review #{reviews.length - idx}</span>
+                        <DecisionBadge decision={rev.decision} />
+                      </div>
+                      <span className="text-xs text-gray-400">{formatDate(rev.created_at)}</span>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                      <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Komentar Reviewer:</p>
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{rev.comment}</p>
+                      {(rev.file_path || rev.word_file_path) && (
+                        <div className="mt-3 pt-3 border-t border-gray-200/60 flex flex-wrap gap-2 justify-end">
+                          {rev.file_path && (
+                            <button
+                              onClick={() => reviewService.download(rev.id, rev.file_name)}
+                              className="btn btn-xs btn-primary gap-1.5 shadow-sm"
+                              title="Download File PDF dari Reviewer"
+                            >
+                              📥 Download PDF ({rev.file_name})
+                            </button>
+                          )}
+                          {rev.word_file_path && (
+                            <button
+                              onClick={() => reviewService.downloadWord(rev.id, rev.word_file_name)}
+                              className="btn btn-xs btn-outline border-primary text-primary hover:bg-primary hover:text-white gap-1.5 shadow-sm"
+                              title="Download File Word dari Reviewer"
+                            >
+                              📝 Download Word ({rev.word_file_name})
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+
+            <DiscussionPanel paperId={historyModal} />
+          </>
         )}
       </Modal>
     </div>

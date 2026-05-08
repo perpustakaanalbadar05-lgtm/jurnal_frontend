@@ -9,6 +9,8 @@ import { Modal, ConfirmModal } from '../components/Modal'
 import { formatDate, STATUS_LABELS, truncate } from '../utils/helpers'
 import toast from 'react-hot-toast'
 import { useDebounce } from '../hooks/useDebounce'
+import { systemService } from '../services/systemService'
+import DiscussionPanel from '../components/DiscussionPanel'
 
 const STATUSES = ['', 'pending', 'under_review', 'accepted', 'revision', 'rejected', 'published']
 
@@ -27,8 +29,9 @@ export default function PaperManagementPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [detailModal, setDetailModal] = useState(null)
   const [categoryFilter, setCategoryFilter] = useState('')
+  const [settings, setSettings] = useState(null)
 
-  const CATEGORIES = ['', 'Computer Science', 'Information Systems', 'Software Engineering', 'Artificial Intelligence', 'Networking', 'Others']
+  const categories = settings?.categories ? ['', ...settings.categories] : ['', 'Computer Science', 'Information Systems', 'Software Engineering', 'Artificial Intelligence', 'Networking', 'Others']
 
   const debouncedSearch = useDebounce(search, 500)
 
@@ -43,7 +46,10 @@ export default function PaperManagementPage() {
       .finally(() => setLoading(false))
   }, [page, debouncedSearch, statusFilter, categoryFilter])
 
-  useEffect(() => { fetchPapers() }, [fetchPapers])
+  useEffect(() => {
+    fetchPapers()
+    systemService.getSettings().then(setSettings).catch(() => {})
+  }, [fetchPapers])
 
   const handleAssignReviewer = async () => {
     if (!selectedReviewer || !selectedPaper) return
@@ -142,7 +148,7 @@ export default function PaperManagementPage() {
               className="form-select flex-1 sm:flex-none sm:w-44"
               id="paper-category-filter"
             >
-              {CATEGORIES.map(cat => (
+              {categories.map(cat => (
                 <option key={cat} value={cat}>{cat || 'Semua Kategori'}</option>
               ))}
             </select>
@@ -525,6 +531,8 @@ export default function PaperManagementPage() {
                 </div>
               </div>
             )}
+
+            <DiscussionPanel paperId={detailModal.id} />
           </div>
         )}
       </Modal>
