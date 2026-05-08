@@ -14,7 +14,7 @@ export default function ReviewQueuePage() {
   const [loading, setLoading] = useState(true)
   const [reviewModal, setReviewModal] = useState(null)
   const [detailModal, setDetailModal] = useState(null)
-  const [form, setForm] = useState({ comment: '', private_comment: '', decision: 'accept', file: null })
+  const [form, setForm] = useState({ comment: '', private_comment: '', decision: 'accept', file: null, word_file: null })
   const [submitting, setSubmitting] = useState(false)
 
   const fetchQueue = () => {
@@ -28,7 +28,7 @@ export default function ReviewQueuePage() {
 
   const openReviewModal = (paper) => {
     setReviewModal(paper)
-    setForm({ comment: '', private_comment: '', decision: 'accept', file: null })
+    setForm({ comment: '', private_comment: '', decision: 'accept', file: null, word_file: null })
   }
 
   const handleSubmitReview = async (e) => {
@@ -46,6 +46,9 @@ export default function ReviewQueuePage() {
       formData.append('decision', form.decision)
       if (form.file) {
         formData.append('file', form.file)
+      }
+      if (form.word_file) {
+        formData.append('word_file', form.word_file)
       }
 
       await reviewService.submit(formData)
@@ -273,17 +276,30 @@ export default function ReviewQueuePage() {
               />
             </div>
 
-            {/* File Upload */}
+            {/* File Upload (PDF) */}
             <div className="form-group">
-              <label className="form-label" htmlFor="review-file">Upload File Revisi (PDF / Word) - <span className="text-gray-400 font-normal">Opsional</span></label>
+              <label className="form-label" htmlFor="review-file">Upload File Revisi (PDF) - <span className="text-gray-400 font-normal">Opsional</span></label>
               <input
                 id="review-file"
                 type="file"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf"
                 onChange={e => setForm({ ...form, file: e.target.files[0] })}
                 className="form-input block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all border border-gray-200 rounded-xl"
               />
-              <p className="text-xs text-gray-400 mt-1">Menerima format .pdf, .doc, atau .docx (Max: 20MB)</p>
+              <p className="text-xs text-gray-400 mt-1">Menerima format .pdf (Max: 20MB)</p>
+            </div>
+
+            {/* File Upload (Word) */}
+            <div className="form-group">
+              <label className="form-label" htmlFor="review-word-file">Upload File Revisi (Word) - <span className="text-gray-400 font-normal">Opsional</span></label>
+              <input
+                id="review-word-file"
+                type="file"
+                accept=".doc,.docx"
+                onChange={e => setForm({ ...form, word_file: e.target.files[0] })}
+                className="form-input block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all border border-gray-200 rounded-xl"
+              />
+              <p className="text-xs text-gray-400 mt-1">Menerima format .doc atau .docx (Max: 20MB)</p>
             </div>
 
             <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 sm:justify-end pt-2 border-t border-gray-100">

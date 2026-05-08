@@ -300,15 +300,26 @@ export default function MyPapersPage() {
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                   <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Komentar Reviewer:</p>
                   <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{rev.comment}</p>
-                  {rev.file_path && (
-                    <div className="mt-3 pt-3 border-t border-gray-200/60 flex justify-end">
-                      <button
-                        onClick={() => reviewService.download(rev.id, rev.file_name)}
-                        className="btn btn-xs btn-primary gap-1.5 shadow-sm"
-                        title="Download File Revisi dari Reviewer"
-                      >
-                        📥 Download File Revisi ({rev.file_name?.endsWith('.pdf') ? 'PDF' : 'Word'})
-                      </button>
+                  {(rev.file_path || rev.word_file_path) && (
+                    <div className="mt-3 pt-3 border-t border-gray-200/60 flex flex-wrap gap-2 justify-end">
+                      {rev.file_path && (
+                        <button
+                          onClick={() => reviewService.download(rev.id, rev.file_name)}
+                          className="btn btn-xs btn-primary gap-1.5 shadow-sm"
+                          title="Download File PDF dari Reviewer"
+                        >
+                          📥 Download PDF ({rev.file_name})
+                        </button>
+                      )}
+                      {rev.word_file_path && (
+                        <button
+                          onClick={() => reviewService.downloadWord(rev.id, rev.word_file_name)}
+                          className="btn btn-xs btn-outline border-primary text-primary hover:bg-primary hover:text-white gap-1.5 shadow-sm"
+                          title="Download File Word dari Reviewer"
+                        >
+                          📝 Download Word ({rev.word_file_name})
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
