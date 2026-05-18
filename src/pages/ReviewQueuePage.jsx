@@ -147,20 +147,12 @@ export default function ReviewQueuePage() {
                     </div>
                     <p className="text-sm text-gray-500 line-clamp-3 mb-3">{paper.abstract}</p>
                     <div className="flex flex-wrap gap-3 text-xs text-gray-400">
-                      <span>👤 {paper.author?.name}</span>
-                      <span>🏛️ {paper.author?.institution || '-'}</span>
+                      <span className="text-primary font-medium" title="Sistem Double-Blind Review aktif">🙈 Penulis Dirahasiakan</span>
                       <span>📅 {formatDate(paper.created_at)}</span>
                       {paper.keywords && <span>🏷️ {paper.keywords}</span>}
                     </div>
 
-                    {/* Co-authors */}
-                    {paper.co_authors?.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {paper.co_authors.map((ca, i) => (
-                          <span key={i} className="badge bg-gray-100 text-gray-600">👤 {ca.name}</span>
-                        ))}
-                      </div>
-                    )}
+                    {/* Co-authors are hidden for double-blind review */}
                   </div>
 
                   <div className="flex flex-wrap gap-2 flex-shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
@@ -220,8 +212,7 @@ export default function ReviewQueuePage() {
                     </div>
                     <p className="text-sm text-gray-500 line-clamp-3 mb-3">{paper.abstract}</p>
                     <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-4">
-                      <span>👤 Author: {paper.author?.name}</span>
-                      <span>🏛️ {paper.author?.institution || '-'}</span>
+                      <span className="text-primary font-medium">🙈 Penulis Dirahasiakan</span>
                       <span>📅 {formatDate(paper.created_at)}</span>
                       {paper.keywords && <span>🏷️ {paper.keywords}</span>}
                     </div>
@@ -315,16 +306,11 @@ export default function ReviewQueuePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Author Utama</p>
-                <p className="text-gray-700">{detailModal.author?.name}</p>
-                <p className="text-gray-500 text-xs">{detailModal.author?.institution}</p>
+                <p className="text-gray-700 italic">Dirahasiakan (Double-Blind Review)</p>
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Co-Authors</p>
-                <p className="text-gray-700">
-                  {detailModal.co_authors?.length > 0 
-                    ? detailModal.co_authors.map(ca => ca.name).join(', ') 
-                    : '-'}
-                </p>
+                <p className="text-gray-700 italic">Dirahasiakan</p>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
@@ -357,7 +343,7 @@ export default function ReviewQueuePage() {
           <form onSubmit={handleSubmitReview} className="space-y-4">
             <div className="p-3 bg-gray-50 rounded-lg">
               <p className="text-sm font-semibold text-gray-700">{reviewModal.title}</p>
-              <p className="text-xs text-gray-400 mt-1">Oleh: {reviewModal.author?.name}</p>
+              <p className="text-xs text-gray-400 mt-1 italic">Penulis dirahasiakan (Double-Blind Review)</p>
             </div>
 
             {/* Decision */}

@@ -18,25 +18,16 @@ export default function EditPaperPage() {
     abstract: '',
     category: '',
     keywords: '',
+    budget: '',
   })
   const [file, setFile] = useState(null)
   const [wordFile, setWordFile] = useState(null)
   const [dragOver, setDragOver] = useState(false)
   const [wordDragOver, setWordDragOver] = useState(false)
 
-  const [categories, setCategories] = useState([])
-  const [customCategory, setCustomCategory] = useState('')
-  const [isCustomCategory, setIsCustomCategory] = useState(false)
-
   useEffect(() => {
     setFetching(true)
-    Promise.all([
-      systemService.getSettings(),
-      paperService.get(id)
-    ]).then(([settings, res]) => {
-      const cats = settings.categories || []
-      setCategories(cats)
-
+    paperService.get(id).then((res) => {
       if (!['pending', 'revision'].includes(res.status)) {
         toast.error('Paper ini tidak dapat diedit saat ini.')
         navigate('/my-papers')
@@ -44,32 +35,18 @@ export default function EditPaperPage() {
       }
 
       setPaper(res)
-      const isCustom = res.category && !cats.includes(res.category)
       setForm({
         title: res.title,
         abstract: res.abstract,
-        category: isCustom ? 'Others' : (res.category || ''),
+        category: res.category || '',
         keywords: res.keywords || '',
+        budget: res.budget || '',
       })
-      if (isCustom) {
-        setIsCustomCategory(true)
-        setCustomCategory(res.category)
-      }
     }).catch(() => {
       toast.error('Gagal memuat data paper')
       navigate('/my-papers')
     }).finally(() => setFetching(false))
   }, [id, navigate])
-
-  const handleCategoryChange = (e) => {
-    const value = e.target.value
-    setForm({ ...form, category: value })
-    if (value.toLowerCase() === 'others' || value.toLowerCase() === 'lainnya') {
-      setIsCustomCategory(true)
-    } else {
-      setIsCustomCategory(false)
-    }
-  }
 
   const handleFileDrop = (e) => {
     e.preventDefault()
@@ -103,13 +80,11 @@ export default function EditPaperPage() {
     setLoading(true)
     try {
       const formData = new FormData()
-      // Laravel requires _method=PUT for multipart/form-data update, but we defined Route::post('/papers/{paper}') in api.php
-      // Wait, we defined Route::post('/papers/{paper}', [PaperController::class, 'update'])!
       formData.append('title', form.title)
       formData.append('abstract', form.abstract)
-      const finalCategory = isCustomCategory ? customCategory : form.category
-      if (finalCategory) formData.append('category', finalCategory)
+      if (form.category) formData.append('category', form.category)
       formData.append('keywords', form.keywords)
+      if (form.budget !== undefined) formData.append('budget', form.budget || '')
       if (file) formData.append('file', file)
       if (wordFile) formData.append('word_file', wordFile)
 
@@ -175,38 +150,19 @@ export default function EditPaperPage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="paper-category">Kategori / Bidang Ilmu *</label>
+            <label className="form-label" htmlFor="paper-category">Kategori *</label>
             <select
               id="paper-category"
               value={form.category}
-              onChange={handleCategoryChange}
+              onChange={e => setForm({ ...form, category: e.target.value })}
               className="form-input"
               required
             >
               <option value="">-- Pilih Kategori --</option>
-              {categories.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-              {!categories.some(c => c.toLowerCase() === 'others' || c.toLowerCase() === 'lainnya') && (
-                <option value="Others">Others / Lainnya</option>
-              )}
+              <option value="Penelitian">Penelitian</option>
+              <option value="Pengabdian Kepada Masyarakat">Pengabdian Kepada Masyarakat</option>
             </select>
           </div>
-
-          {isCustomCategory && (
-            <div className="form-group mt-3 animate-fade-in">
-              <label className="form-label" htmlFor="paper-custom-category">Masukkan Kategori Kustom *</label>
-              <input
-                id="paper-custom-category"
-                type="text"
-                value={customCategory}
-                onChange={e => setCustomCategory(e.target.value)}
-                className="form-input"
-                placeholder="Masukkan bidang ilmu Anda sendiri..."
-                required
-              />
-            </div>
-          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="paper-keywords">Keywords</label>
@@ -217,6 +173,19 @@ export default function EditPaperPage() {
               onChange={e => setForm({ ...form, keywords: e.target.value })}
               className="form-input"
             />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="paper-budget">Anggaran</label>
+            <input
+              id="paper-budget"
+              type="text"
+              value={form.budget}
+              onChange={e => setForm({ ...form, budget: e.target.value })}
+              className="form-input"
+              placeholder="Masukkan anggaran (contoh: Rp 5.000.000)..."
+            />
+            <p className="text-xs text-gray-400 mt-1">Estimasi atau alokasi anggaran untuk kegiatan ini</p>
           </div>
         </div>
 

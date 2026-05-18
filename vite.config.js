@@ -9,15 +9,15 @@ export default defineConfig({
 
     proxy: {
       '/api': {
-        target: 'https://abdimu.iaimu.ac.id/api',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
-        secure: true,
+        secure: false,
       },
 
       '/storage': {
-        target: 'https://abdimu.iaimu.ac.id',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
-        secure: true,
+        secure: false,
       },
     },
   },

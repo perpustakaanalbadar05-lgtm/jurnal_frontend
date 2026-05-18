@@ -39,7 +39,7 @@ export default function MyPapersPage() {
   const [historyLoading, setHistoryLoading] = useState(false)
   const [reviews, setReviews] = useState([])
 
-  const categories = settings?.categories ? ['', ...settings.categories] : ['', 'Computer Science', 'Information Systems', 'Software Engineering', 'Artificial Intelligence', 'Networking', 'Others']
+  const categories = settings?.categories ? ['', ...settings.categories] : ['', 'Penelitian', 'Pengabdian Kepada Masyarakat']
 
   const fetchHistory = async (paperId) => {
     setHistoryLoading(true)

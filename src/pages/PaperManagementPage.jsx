@@ -31,7 +31,7 @@ export default function PaperManagementPage() {
   const [categoryFilter, setCategoryFilter] = useState('')
   const [settings, setSettings] = useState(null)
 
-  const categories = settings?.categories ? ['', ...settings.categories] : ['', 'Computer Science', 'Information Systems', 'Software Engineering', 'Artificial Intelligence', 'Networking', 'Others']
+  const categories = settings?.categories ? ['', ...settings.categories] : ['', 'Penelitian', 'Pengabdian Kepada Masyarakat']
 
   const debouncedSearch = useDebounce(search, 500)
 
@@ -460,14 +460,28 @@ export default function PaperManagementPage() {
                 </div>
               </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Anggaran</p>
+              <p className="text-sm font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg inline-block border border-emerald-100">
+                {detailModal.budget ? detailModal.budget : 'Tidak dicantumkan'}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Author Utama</p>
-                <p className="text-gray-700">{detailModal.author?.name}</p>
+                <p className="text-gray-700 font-medium">{detailModal.author?.name}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Kategori</p>
+                <p className="text-gray-700 font-medium">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-primary/5 text-primary text-xs font-semibold rounded-full border border-primary/15">
+                    🏷️ {detailModal.category || 'Belum dipilih'}
+                  </span>
+                </p>
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Reviewer</p>
-                <p className="text-gray-700">{detailModal.assigned_reviewer?.name || '-'}</p>
+                <p className="text-gray-700 font-medium">{detailModal.assigned_reviewer?.name || '-'}</p>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">

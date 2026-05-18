@@ -14,7 +14,7 @@ export default function PublicationsPage() {
   const [meta, setMeta] = useState(null)
   const [settings, setSettings] = useState(null)
 
-  const categories = settings?.categories ? ['', ...settings.categories] : ['', 'Computer Science', 'Information Systems', 'Software Engineering', 'Artificial Intelligence', 'Networking', 'Others']
+  const categories = settings?.categories ? ['', ...settings.categories] : ['', 'Penelitian', 'Pengabdian Kepada Masyarakat']
 
   const debouncedSearch = useDebounce(search, 500)
 

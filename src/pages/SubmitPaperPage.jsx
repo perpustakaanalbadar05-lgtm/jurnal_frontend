@@ -14,36 +14,13 @@ export default function SubmitPaperPage() {
     abstract: '',
     category: '',
     keywords: '',
+    budget: '',
   })
   const [file, setFile] = useState(null)
   const [wordFile, setWordFile] = useState(null)
   const [coAuthors, setCoAuthors] = useState([])
   const [dragOver, setDragOver] = useState(false)
   const [wordDragOver, setWordDragOver] = useState(false)
-
-  const [categories, setCategories] = useState([])
-  const [customCategory, setCustomCategory] = useState('')
-  const [isCustomCategory, setIsCustomCategory] = useState(false)
-
-  useEffect(() => {
-    systemService.getSettings()
-      .then(res => {
-        setCategories(res.categories || [])
-      })
-      .catch(() => {
-        toast.error('Gagal memuat kategori dari sistem')
-      })
-  }, [])
-
-  const handleCategoryChange = (e) => {
-    const value = e.target.value
-    setForm({ ...form, category: value })
-    if (value.toLowerCase() === 'others' || value.toLowerCase() === 'lainnya') {
-      setIsCustomCategory(true)
-    } else {
-      setIsCustomCategory(false)
-    }
-  }
 
   const addCoAuthor = () => setCoAuthors([...coAuthors, { name: '', email: '', institution: '' }])
   const removeCoAuthor = (i) => setCoAuthors(coAuthors.filter((_, idx) => idx !== i))
@@ -87,9 +64,9 @@ export default function SubmitPaperPage() {
       const formData = new FormData()
       formData.append('title', form.title)
       formData.append('abstract', form.abstract)
-      const finalCategory = isCustomCategory ? customCategory : form.category
-      if (finalCategory) formData.append('category', finalCategory)
+      if (form.category) formData.append('category', form.category)
       formData.append('keywords', form.keywords)
+      if (form.budget) formData.append('budget', form.budget)
       if (file) formData.append('file', file)
       if (wordFile) formData.append('word_file', wordFile)
       coAuthors.forEach((author, i) => {
@@ -162,38 +139,19 @@ export default function SubmitPaperPage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="paper-category">Kategori / Bidang Ilmu *</label>
+            <label className="form-label" htmlFor="paper-category">Kategori *</label>
             <select
               id="paper-category"
               value={form.category}
-              onChange={handleCategoryChange}
+              onChange={e => setForm({ ...form, category: e.target.value })}
               className="form-input"
               required
             >
               <option value="">-- Pilih Kategori --</option>
-              {categories.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-              {!categories.some(c => c.toLowerCase() === 'others' || c.toLowerCase() === 'lainnya') && (
-                <option value="Others">Others / Lainnya</option>
-              )}
+              <option value="Penelitian">Penelitian</option>
+              <option value="Pengabdian Kepada Masyarakat">Pengabdian Kepada Masyarakat</option>
             </select>
           </div>
-
-          {isCustomCategory && (
-            <div className="form-group mt-3 animate-fade-in">
-              <label className="form-label" htmlFor="paper-custom-category">Masukkan Kategori Kustom *</label>
-              <input
-                id="paper-custom-category"
-                type="text"
-                value={customCategory}
-                onChange={e => setCustomCategory(e.target.value)}
-                className="form-input"
-                placeholder="Masukkan bidang ilmu Anda sendiri..."
-                required
-              />
-            </div>
-          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="paper-keywords">Keywords</label>
@@ -206,6 +164,19 @@ export default function SubmitPaperPage() {
               placeholder="keyword1, keyword2, keyword3..."
             />
             <p className="text-xs text-gray-400 mt-1">Pisahkan keyword dengan tanda koma</p>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="paper-budget">Anggaran</label>
+            <input
+              id="paper-budget"
+              type="text"
+              value={form.budget}
+              onChange={e => setForm({ ...form, budget: e.target.value })}
+              className="form-input"
+              placeholder="Masukkan anggaran (contoh: Rp 5.000.000)..."
+            />
+            <p className="text-xs text-gray-400 mt-1">Estimasi atau alokasi anggaran untuk kegiatan ini</p>
           </div>
         </div>
 

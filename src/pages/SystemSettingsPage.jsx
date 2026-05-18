@@ -146,55 +146,6 @@ export default function SystemSettingsPage() {
               </div>
             </div>
 
-            <hr className="my-6 border-gray-100" />
-
-            <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-xl">🏷️</span>
-              Kategori / Bidang Ilmu Jurnal
-            </h2>
-
-            <div className="space-y-4 mb-6">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newCategory}
-                  onChange={e => setNewCategory(e.target.value)}
-                  className="form-input"
-                  placeholder="Tambah kategori baru (misal: Kedokteran, Hukum)..."
-                />
-                <button
-                  type="button"
-                  onClick={handleAddCategory}
-                  className="btn btn-primary px-4 whitespace-nowrap bg-primary text-white rounded-xl font-semibold text-sm hover:opacity-90"
-                >
-                  ➕ Tambah
-                </button>
-              </div>
-
-              <div className="flex flex-wrap gap-2 pt-2">
-                {form.categories.length === 0 ? (
-                  <p className="text-sm text-gray-400">Belum ada kategori yang ditambahkan.</p>
-                ) : (
-                  form.categories.map((cat, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 text-gray-700 hover:text-red-600 border border-gray-200 text-sm font-medium rounded-xl transition-all"
-                    >
-                      {cat}
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteCategory(cat)}
-                        className="text-gray-400 hover:text-red-500 font-bold transition-colors text-xs ml-1"
-                        title="Hapus Kategori"
-                      >
-                        ✕
-                      </button>
-                    </span>
-                  ))
-                )}
-              </div>
-            </div>
-
             <div className="mt-8 flex justify-end">
               <button type="submit" disabled={saving} className="btn-primary">
                 {saving ? <><Spinner size="sm" /> Menyimpan...</> : '💾 Simpan Perubahan'}
